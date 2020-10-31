@@ -7,11 +7,11 @@ import android.graphics.Bitmap;
 import android.os.SystemClock;
 import android.os.Trace;
 
+import org.openbot.ControlSignal;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import org.openbot.CameraActivity.ControlSignal;
 
 public abstract class Autopilot extends Network {
 

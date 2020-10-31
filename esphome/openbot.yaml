@@ -4,12 +4,19 @@ esphome:
   platform: ESP32
   board: lolin32
   includes:
+    - MyIMU.h
     - OpenBot.h
+    - gyro/Adafruit_L3GD20_U.h
+    - gyro/Adafruit_L3GD20_U.cpp
   platformio_options:
     lib_deps:
       - ESP32 AnalogWrite
       - FastLED@3.2.1
       - ericksimoes/Ultrasonic
+      - 689 # arduino-libraries/Madgwick
+      - 14  # adafruit/Adafruit 9DOF Library
+      - 23  # adafruit/Adafruit L3GD20 U
+      - 6775
 
 custom_component:
   - id: openbot
@@ -36,18 +43,18 @@ logger:
 web_server:
 
 binary_sensor:
-  - platform: gpio
-    pin:
-      inverted: True
-      number: 35
-    name: "IR Left"
-    id: "ir_left"
-  - platform: gpio
-    pin:
-      inverted: True
-      number: 0
-    name: "IR Right"
-    id: "ir_right"
+#  - platform: gpio
+#    pin:
+#      inverted: True
+#      number: 35
+#    name: "IR Left"
+#    id: "ir_left"
+#  - platform: gpio
+#    pin:
+#      inverted: True
+#      number: 0
+#    name: "IR Right"
+#    id: "ir_right"
 
 light:
 #  - platform: neopixelbus

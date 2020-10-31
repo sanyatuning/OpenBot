@@ -32,11 +32,13 @@ import android.util.TypedValue;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
+import org.openbot.ControlSignal;
+import org.openbot.drivemode.Following;
 import org.openbot.env.BorderedText;
 import org.openbot.env.ImageUtils;
 import org.openbot.env.Logger;
 import org.openbot.tflite.Detector.Recognition;
-import org.openbot.CameraActivity.ControlSignal;
 
 /** A tracker that handles non-max suppression and matches existing objects to new detections. */
 public class MultiBoxTracker {
@@ -59,10 +61,10 @@ public class MultiBoxTracker {
     Color.parseColor("#AA33AA"),
     Color.parseColor("#0D0068")
   };
-  final List<Pair<Float, RectF>> screenRects = new LinkedList<Pair<Float, RectF>>();
+  final List<Pair<Float, RectF>> screenRects = new LinkedList<>();
   private final Logger logger = new Logger();
-  private final Queue<Integer> availableColors = new LinkedList<Integer>();
-  private final List<TrackedRecognition> trackedObjects = new LinkedList<TrackedRecognition>();
+  private final Queue<Integer> availableColors = new LinkedList<>();
+  private final List<TrackedRecognition> trackedObjects = new LinkedList<>();
   private final Paint boxPaint = new Paint();
   private final float textSizePx;
   private final BorderedText borderedText;
@@ -70,8 +72,8 @@ public class MultiBoxTracker {
   private int frameWidth;
   private int frameHeight;
   private int sensorOrientation;
-  private float leftControl;
-  private float rightControl;
+
+  private Following driveMode = new Following();
 
   public MultiBoxTracker(final Context context) {
     for (final int color : COLORS) {
@@ -117,7 +119,7 @@ public class MultiBoxTracker {
   }
 
   public synchronized void trackResults(final List<Recognition> results, final long timestamp) {
-    logger.i("Processing %d results from %d", results.size(), timestamp);
+//    logger.i("Processing %d results from %d", results.size(), timestamp);
     processResults(results);
   }
 
@@ -155,23 +157,13 @@ public class MultiBoxTracker {
       //Scale relative position along x-axis between -1 and 1
       float x_pos_norm = 1.0f - 2.0f * centerX / imgWidth;
       //Scale to control signal and account for rotation
-      float x_pos_scaled = rotated ? -x_pos_norm * 1.0f : x_pos_norm * 1.0f;
+      driveMode.setXPosition(rotated ? -x_pos_norm * 1.0f : x_pos_norm * 1.0f);
       ////Scale by "exponential" function: y = x / sqrt(1-x^2)
       //Math.max (Math.min(x_pos_norm / Math.sqrt(1 - x_pos_norm * x_pos_norm),2),-2) * 255.0f;
-
-      if (x_pos_scaled < 0) {
-        leftControl = 1.0f;
-        rightControl = 1.0f + x_pos_scaled;
-      } else {
-        leftControl = 1.0f - x_pos_scaled;
-        rightControl = 1.0f;
-      }
+    } else {
+      driveMode.setXPosition(null);
     }
-    else {
-      leftControl = 0.0f;
-      rightControl = 0.0f;
-    }
-    return new ControlSignal(leftControl, rightControl);
+    return driveMode.getControl();
   }
 
   public synchronized void draw(final Canvas canvas) {
@@ -209,7 +201,7 @@ public class MultiBoxTracker {
   }
 
   private void processResults(final List<Recognition> results) {
-    final List<Pair<Float, Recognition>> rectsToTrack = new LinkedList<Pair<Float, Recognition>>();
+    final List<Recognition> rectsToTrack = new LinkedList<>();
 
     screenRects.clear();
     final Matrix rgbFrameToScreen = new Matrix(getFrameToCanvasMatrix());
@@ -223,17 +215,16 @@ public class MultiBoxTracker {
       final RectF detectionScreenRect = new RectF();
       rgbFrameToScreen.mapRect(detectionScreenRect, detectionFrameRect);
 
-      logger.v(
-          "Result! Frame: " + result.getLocation() + " mapped to screen:" + detectionScreenRect);
+      logger.v("Result! Frame: " + result.getLocation() + " mapped to screen:" + detectionScreenRect);
 
-      screenRects.add(new Pair<Float, RectF>(result.getConfidence(), detectionScreenRect));
+      screenRects.add(new Pair<>(result.getConfidence(), detectionScreenRect));
 
       if (detectionFrameRect.width() < MIN_SIZE || detectionFrameRect.height() < MIN_SIZE) {
         logger.w("Degenerate rectangle! " + detectionFrameRect);
         continue;
       }
 
-      rectsToTrack.add(new Pair<Float, Recognition>(result.getConfidence(), result));
+      rectsToTrack.add(result);
     }
 
     //Clear so objects don't stay if nothing detected.
@@ -244,12 +235,11 @@ public class MultiBoxTracker {
       return;
     }
 
-    //trackedObjects.clear();
-    for (final Pair<Float, Recognition> potential : rectsToTrack) {
+    for (final Recognition potential : rectsToTrack) {
       final TrackedRecognition trackedRecognition = new TrackedRecognition();
-      trackedRecognition.detectionConfidence = potential.first;
-      trackedRecognition.location = new RectF(potential.second.getLocation());
-      trackedRecognition.title = potential.second.getTitle();
+      trackedRecognition.detectionConfidence = potential.getConfidence();
+      trackedRecognition.location = potential.getLocation();
+      trackedRecognition.title = potential.getTitle();
       trackedRecognition.color = COLORS[trackedObjects.size()];
       trackedObjects.add(trackedRecognition);
 

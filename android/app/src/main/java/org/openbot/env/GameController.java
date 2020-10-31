@@ -8,8 +8,8 @@ import android.view.MotionEvent;
 import android.widget.Toast;
 
 import org.openbot.CameraActivity;
-import org.openbot.CameraActivity.ControlSignal;
 import org.openbot.CameraActivity.DriveMode;
+import org.openbot.ControlSignal;
 
 
 public class GameController {
@@ -186,7 +186,6 @@ public class GameController {
     }
 
     return new ControlSignal(left,right);
-
   }
 
 }

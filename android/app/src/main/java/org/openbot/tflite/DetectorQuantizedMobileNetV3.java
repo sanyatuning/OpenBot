@@ -158,11 +158,12 @@ public class DetectorQuantizedMobileNetV3 extends Detector {
       // in label file and class labels start from 1 to number_of_classes+1,
       // while outputClasses correspond to class index from 0 to number_of_classes
       int labelOffset = 1;
-      if (labels.get((int) outputClasses[0][i] + labelOffset).contentEquals("person")) {
+      String label = labels.get((int) outputClasses[0][i] + labelOffset);
+      if (label.contentEquals("person") || label.contentEquals("dog") || label.contentEquals("cat")) {
         recognitions.add(
                 new Recognition(
                         "" + i,
-                        labels.get((int) outputClasses[0][i] + labelOffset),
+                        label,
                         outputScores[0][i],
                         detection));
       }

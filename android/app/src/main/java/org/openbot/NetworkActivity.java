@@ -78,7 +78,7 @@ public class NetworkActivity extends CameraActivity implements OnImageAvailableL
   private Bitmap cropCopyBitmap = null;
 
   private boolean computingNetwork = false;
-  private boolean driveByNetwork = false;
+  private boolean driveByNetwork = true;
   private boolean noiseEnabled = false;
   private long frameNum = 0;
 
@@ -179,23 +179,23 @@ public class NetworkActivity extends CameraActivity implements OnImageAvailableL
       }
 
       computingNetwork = true;
-      LOGGER.i("Putting image " + currFrameNum + " for detection in bg thread.");
+//      LOGGER.i("Putting image " + currFrameNum + " for detection in bg thread.");
 
       runInBackground(
                 new Runnable() {
                   @Override
                   public void run() {
                     if (detector != null) {
-                      LOGGER.i("Running detection on image " + currFrameNum);
+//                      LOGGER.i("Running detection on image " + currFrameNum);
                       final long startTime = SystemClock.uptimeMillis();
                       final List<Detector.Recognition> results = detector.recognizeImage(croppedBitmap);
                       lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
-                      if (!results.isEmpty())
-                        LOGGER.i("Object: " + results.get(0).getLocation().centerX() + ", "
-                                +  results.get(0).getLocation().centerY() + ", "
-                                + results.get(0).getLocation().height() + ", "
-                                + results.get(0).getLocation().width() );
+//                      if (!results.isEmpty())
+//                        LOGGER.i("Object: " + results.get(0).getLocation().centerX() + ", "
+//                                +  results.get(0).getLocation().centerY() + ", "
+//                                + results.get(0).getLocation().height() + ", "
+//                                + results.get(0).getLocation().width() );
 
                       cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
                       final Canvas canvas = new Canvas(cropCopyBitmap);
@@ -269,8 +269,9 @@ public class NetworkActivity extends CameraActivity implements OnImageAvailableL
             new Runnable() {
               @Override
               public void run() {
-                Log.i("display_ctrl", "runnable");
-                showControl(String.format("%.2f,%.2f",vehicleControl.getLeft(), vehicleControl.getRight()));
+                String msg = String.format("%.2f,%.2f", vehicleControl.getLeft(), vehicleControl.getRight());
+                Log.i("display_ctrl", msg);
+                showControl(msg);
               }
             });
 

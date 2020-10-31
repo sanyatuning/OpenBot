@@ -88,7 +88,7 @@ import org.openbot.env.Logger;
 import org.openbot.tflite.Network.Device;
 import org.openbot.tflite.Network.Model;
 
-public abstract class CameraActivity extends AppCompatActivity
+public abstract class CameraActivity extends SensorActivity
     implements OnImageAvailableListener,
         Camera.PreviewCallback,
         CompoundButton.OnCheckedChangeListener,
@@ -132,7 +132,7 @@ public abstract class CameraActivity extends AppCompatActivity
   protected Spinner baudRateSpinner, modelSpinner, deviceSpinner, driveModeSpinner, loggerSpinner, controlSpinner;
   private TextView threadsTextView;
   private Model model = Model.DETECTOR_V1_1_0_Q;
-  private Device device = Device.CPU;
+  private Device device = Device.GPU;
   private int numThreads = -1;
 
   protected GameController gameController;
@@ -158,9 +158,15 @@ public abstract class CameraActivity extends AppCompatActivity
   }
   
   public enum ControlSpeed {
-    SLOW,
-    NORMAL,
-    FAST
+    SLOW(64),
+    NORMAL(128),
+    FAST(255);
+
+    public final int value;
+
+    private ControlSpeed(int value) {
+      this.value = value;
+    }
   }
 
   public enum DriveMode {
@@ -169,26 +175,7 @@ public abstract class CameraActivity extends AppCompatActivity
     JOYSTICK
   }
 
-  public final static class ControlSignal {
-    private final float left;
-    private final float right;
-
-    public ControlSignal(float left, float right) {
-      this.left = Math.max(-1.f, Math.min(1.f, left));
-      this.right = Math.max(-1.f, Math.min(1.f, right));
-    }
-
-    public float getLeft() {
-      return left;
-    }
-
-    public float getRight() {
-      return right;
-    }
-  }
-
   protected ControlSignal vehicleControl = new ControlSignal(0,0);
-  protected int speedMultiplier = 192; //128,192,255
   protected int vehicleIndicator = 0;
 
   @Override
@@ -718,19 +705,6 @@ public abstract class CameraActivity extends AppCompatActivity
     if (this.controlSpeed != controlSpeed) {
       LOGGER.d("Updating  controlSpeed: " + controlSpeed);
       this.controlSpeed = controlSpeed;
-      switch (controlSpeed) {
-        case SLOW:
-          speedMultiplier = 128;
-          break;
-        case NORMAL:
-          speedMultiplier = 192;
-          break;
-        case FAST:
-          speedMultiplier = 255;
-          break;
-        default:
-          throw new IllegalStateException("Unexpected value: " + controlSpeed);
-      }
     }
   }
   
@@ -834,8 +808,8 @@ public abstract class CameraActivity extends AppCompatActivity
   protected void sendControlToSensorService(ControlSignal vehicleControl) {
     if (mSensorMessenger != null){
       Message msg = Message.obtain();
-      msg.arg1 = (int) vehicleControl.getLeft() * speedMultiplier;
-      msg.arg2 = (int) vehicleControl.getRight() * speedMultiplier;
+      msg.arg1 = (int) vehicleControl.getLeft() * controlSpeed.value;
+      msg.arg2 = (int) vehicleControl.getRight() * controlSpeed.value;
       msg.what = SensorService.MSG_CONTROL;
       try {
         mSensorMessenger.send(msg);
@@ -985,8 +959,9 @@ public abstract class CameraActivity extends AppCompatActivity
   protected void sendControlToVehicle(ControlSignal vehicleControl) {
     if ((usbConnection != null) && usbConnection.isOpen() && !usbConnection.isBusy()) {
       String message = String.format("c%d,%d\n",
-              (int) (vehicleControl.getLeft() * speedMultiplier),
-              (int) (vehicleControl.getRight() * speedMultiplier));
+              (int) (vehicleControl.getLeft() * controlSpeed.value),
+              (int) (vehicleControl.getRight() * controlSpeed.value));
+      LOGGER.i(message);
       usbConnection.send(message);
     }
   }
