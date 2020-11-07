@@ -158,9 +158,9 @@ public abstract class CameraActivity extends SensorActivity
   }
   
   public enum ControlSpeed {
-    SLOW(64),
-    NORMAL(128),
-    FAST(255);
+    SLOW(300),
+    NORMAL(700),
+    FAST(1024);
 
     public final int value;
 

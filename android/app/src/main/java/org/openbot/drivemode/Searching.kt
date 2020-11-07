@@ -13,8 +13,8 @@ class Searching : DriveMode {
     override fun getControl(): ControlSignal {
         skippedFrames++
         if (skippedFrames > 8) {
-            skippedFrames = 0
-            leftControl = 0.6f * lastTurn
+            //skippedFrames = 0
+            leftControl = 0.4f * lastTurn
             rightControl = -leftControl
         } else  {
             leftControl = 0.0f

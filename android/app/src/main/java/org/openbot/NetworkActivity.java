@@ -78,7 +78,7 @@ public class NetworkActivity extends CameraActivity implements OnImageAvailableL
   private Bitmap cropCopyBitmap = null;
 
   private boolean computingNetwork = false;
-  private boolean driveByNetwork = true;
+  private boolean driveByNetwork = false;
   private boolean noiseEnabled = false;
   private long frameNum = 0;
 

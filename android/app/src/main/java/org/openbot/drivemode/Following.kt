@@ -16,7 +16,7 @@ class Following : DriveMode {
         if (XPosition != null) {
             skippedFrames = 0
             // TODO test this
-            XPosition = XPosition!! / 3
+            //XPosition = XPosition!! / 3
             if (XPosition!! < 0) {
                 searching.lastTurn = -1
                 leftControl = 1.0f

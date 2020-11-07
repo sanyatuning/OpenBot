@@ -169,6 +169,7 @@ public class UsbConnection {
         serialDevice.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
         serialDevice.read(callback);
         LOGGER.i("Serial connection opened");
+        send("hello");
         success = true;
       } else {
         LOGGER.w("Cannot open serial connection");
@@ -182,9 +183,11 @@ public class UsbConnection {
   private void onSerialDataReceived(String data) {
     // Add whatever you want here
     LOGGER.i("Serial data received: " + data);
-    mLocalBroadcastManager.sendBroadcast(new Intent(SensorService.USB_ACTION_DATA_RECEIVED)
+    mLocalBroadcastManager.sendBroadcast(
+        new Intent(SensorService.USB_ACTION_DATA_RECEIVED)
             .putExtra("from", "usb")
-            .putExtra("data", data));
+            .putExtra("data", data)
+    );
   }
 
   public void stopUsbConnection() {

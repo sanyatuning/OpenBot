@@ -1,22 +1,21 @@
 
 esphome:
   name: openbot
-  platform: ESP32
-  board: lolin32
+  platform: ESP8266
+  board: d1_mini_pro
   includes:
-    - MyIMU.h
+#    - MyIMU.h
     - OpenBot.h
-    - gyro/Adafruit_L3GD20_U.h
-    - gyro/Adafruit_L3GD20_U.cpp
-  platformio_options:
-    lib_deps:
-      - ESP32 AnalogWrite
-      - FastLED@3.2.1
-      - ericksimoes/Ultrasonic
-      - 689 # arduino-libraries/Madgwick
-      - 14  # adafruit/Adafruit 9DOF Library
-      - 23  # adafruit/Adafruit L3GD20 U
-      - 6775
+#    - gyro/Adafruit_L3GD20_U.h
+#    - gyro/Adafruit_L3GD20_U.cpp
+#  platformio_options:
+#    lib_deps:
+#      - FastLED@3.2.1
+#      - ericksimoes/Ultrasonic
+#      - 689 # arduino-libraries/Madgwick
+#      - 14  # adafruit/Adafruit 9DOF Library
+#      - 23  # adafruit/Adafruit L3GD20 U
+#      - 6775 # Adafruit LSM303 Accel
 
 custom_component:
   - id: openbot
@@ -55,15 +54,3 @@ binary_sensor:
 #      number: 0
 #    name: "IR Right"
 #    id: "ir_right"
-
-light:
-#  - platform: neopixelbus
-#    variant: WS2812X
-  - platform: fastled_clockless
-    chipset: WS2812B
-    rgb_order: RBG
-#    max_refresh_rate: 10ms
-    pin: 19
-    num_leds: 4
-    name: "Lights"
-    id: lights
