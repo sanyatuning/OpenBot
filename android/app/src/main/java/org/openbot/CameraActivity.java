@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Modified by Matthias Mueller - Intel Intelligent Systems Lab - 2020
+// Modified by Matthias Mueller - Intel Intelligent Systems Lab - 2020
 
 package org.openbot;
 
@@ -34,7 +34,6 @@ import android.media.Image;
 import android.media.Image.Plane;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -46,16 +45,6 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.Trace;
-import androidx.annotation.NonNull;
-
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -69,24 +58,28 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.openbot.env.UsbConnection;
-import org.zeroturnaround.zip.ZipUtil;
-import org.zeroturnaround.zip.commons.FileUtils;
-
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
 import org.openbot.env.GameController;
 import org.openbot.env.ImageUtils;
 import org.openbot.env.Logger;
+import org.openbot.env.UsbConnection;
 import org.openbot.tflite.Network.Device;
 import org.openbot.tflite.Network.Model;
+import org.zeroturnaround.zip.ZipUtil;
+import org.zeroturnaround.zip.commons.FileUtils;
 
 public abstract class CameraActivity extends SensorActivity
     implements OnImageAvailableListener,
@@ -104,7 +97,6 @@ public abstract class CameraActivity extends SensorActivity
   private static final String PERMISSION_CAMERA = Manifest.permission.CAMERA;
   private static final String PERMISSION_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
   private static final String PERMISSION_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-
 
   private static Context mContext;
   private int cameraSelection = CameraCharacteristics.LENS_FACING_BACK;
@@ -126,10 +118,18 @@ public abstract class CameraActivity extends SensorActivity
   private BottomSheetBehavior sheetBehavior;
 
   protected SwitchCompat connectionSwitchCompat, driveModeSwitchCompat, loggerSwitchCompat;
-  protected TextView frameValueTextView, cropValueTextView, inferenceTimeTextView, controlValueTextView;
+  protected TextView frameValueTextView,
+      cropValueTextView,
+      inferenceTimeTextView,
+      controlValueTextView;
   protected ImageView bottomSheetArrowImageView;
   private ImageView plusImageView, minusImageView;
-  protected Spinner baudRateSpinner, modelSpinner, deviceSpinner, driveModeSpinner, loggerSpinner, controlSpinner;
+  protected Spinner baudRateSpinner,
+      modelSpinner,
+      deviceSpinner,
+      driveModeSpinner,
+      loggerSpinner,
+      controlSpinner;
   private TextView threadsTextView;
   private Model model = Model.DETECTOR_V1_1_0_Q;
   private Device device = Device.GPU;
@@ -140,7 +140,7 @@ public abstract class CameraActivity extends SensorActivity
   // **** USB **** //
   protected UsbConnection usbConnection;
   protected boolean usbConnected;
-  public int[] BaudRates = {9600,14400,19200,38400,57600,115200,230400,460800,921600};
+  public int[] BaudRates = {9600, 14400, 19200, 38400, 57600, 115200, 230400, 460800, 921600};
   private int baudRate = 115200;
   protected LogMode logMode = LogMode.CROP_IMG;
   protected ControlSpeed controlSpeed = ControlSpeed.NORMAL;
@@ -149,14 +149,13 @@ public abstract class CameraActivity extends SensorActivity
   private boolean loggingEnabled;
   private Intent intentSensorService;
 
-
   public enum LogMode {
     ALL_IMGS,
     CROP_IMG,
     PREVIEW_IMG,
     ONLY_SENSORS
   }
-  
+
   public enum ControlSpeed {
     SLOW(300),
     NORMAL(700),
@@ -175,7 +174,7 @@ public abstract class CameraActivity extends SensorActivity
     JOYSTICK
   }
 
-  protected ControlSignal vehicleControl = new ControlSignal(0,0);
+  protected ControlSignal vehicleControl = new ControlSignal(0, 0);
   protected int vehicleIndicator = 0;
 
   @Override
@@ -223,7 +222,7 @@ public abstract class CameraActivity extends SensorActivity
             } else {
               gestureLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
-            //int width = bottomSheetLayout.getMeasuredWidth();
+            // int width = bottomSheetLayout.getMeasuredWidth();
             int height = gestureLayout.getMeasuredHeight();
 
             sheetBehavior.setPeekHeight(height);
@@ -279,7 +278,7 @@ public abstract class CameraActivity extends SensorActivity
     loggerSpinner.setOnItemSelectedListener(this);
     controlSpinner.setOnItemSelectedListener(this);
 
-    //Make sure spinners are initialized correctly
+    // Make sure spinners are initialized correctly
     baudRateSpinner.setSelection(Arrays.binarySearch(BaudRates, baudRate));
     modelSpinner.setSelection(model.ordinal());
     deviceSpinner.setSelection(device.ordinal());
@@ -291,10 +290,10 @@ public abstract class CameraActivity extends SensorActivity
 
     gameController = new GameController(driveMode);
 
-    //Intent for sensor service
+    // Intent for sensor service
     intentSensorService = new Intent(this, SensorService.class);
 
-    //Try to connect to serial device
+    // Try to connect to serial device
     toggleConnection(true);
   }
 
@@ -473,35 +472,28 @@ public abstract class CameraActivity extends SensorActivity
   }
 
   @Override
-  public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
+  public void onRequestPermissionsResult(
+      final int requestCode, final String[] permissions, final int[] grantResults) {
     switch (requestCode) {
       case REQUEST_CAMERA_PERMISSION:
-        if (grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
           setFragment();
-        }
-        else {
-          if (ActivityCompat.shouldShowRequestPermissionRationale(this,PERMISSION_CAMERA)) {
-            Toast.makeText(this,
-                    R.string.camera_permission_denied,
-                    Toast.LENGTH_LONG).show();
+        } else {
+          if (ActivityCompat.shouldShowRequestPermissionRationale(this, PERMISSION_CAMERA)) {
+            Toast.makeText(this, R.string.camera_permission_denied, Toast.LENGTH_LONG).show();
           }
-          //requestCameraPermission();
+          // requestCameraPermission();
         }
         break;
 
       case REQUEST_LOCATION_PERMISSION:
         // If the permission is granted, start logging,
         // otherwise, show a Toast
-        if (grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
           setIsLoggingActive(true);
-        }
-        else {
-          if (ActivityCompat.shouldShowRequestPermissionRationale(this,PERMISSION_LOCATION)) {
-            Toast.makeText(this,
-                    R.string.location_permission_denied,
-                    Toast.LENGTH_LONG).show();
+        } else {
+          if (ActivityCompat.shouldShowRequestPermissionRationale(this, PERMISSION_LOCATION)) {
+            Toast.makeText(this, R.string.location_permission_denied, Toast.LENGTH_LONG).show();
           }
         }
         break;
@@ -509,15 +501,11 @@ public abstract class CameraActivity extends SensorActivity
       case REQUEST_STORAGE_PERMISSION:
         // If the permission is granted, start logging,
         // otherwise, show a Toast
-        if (grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
           setIsLoggingActive(true);
-        }
-        else {
-          if (ActivityCompat.shouldShowRequestPermissionRationale(this,PERMISSION_STORAGE)) {
-            Toast.makeText(this,
-                    R.string.storage_permission_denied,
-                    Toast.LENGTH_LONG).show();
+        } else {
+          if (ActivityCompat.shouldShowRequestPermissionRationale(this, PERMISSION_STORAGE)) {
+            Toast.makeText(this, R.string.storage_permission_denied, Toast.LENGTH_LONG).show();
           }
         }
         break;
@@ -526,34 +514,32 @@ public abstract class CameraActivity extends SensorActivity
 
   private boolean hasCameraPermission() {
     return ContextCompat.checkSelfPermission(this, PERMISSION_CAMERA)
-            == PackageManager.PERMISSION_GRANTED;
+        == PackageManager.PERMISSION_GRANTED;
   }
 
   private boolean hasLocationPermission() {
     return ContextCompat.checkSelfPermission(this, PERMISSION_LOCATION)
-            == PackageManager.PERMISSION_GRANTED;
+        == PackageManager.PERMISSION_GRANTED;
   }
+
   private boolean hasStoragePermission() {
     return ContextCompat.checkSelfPermission(this, PERMISSION_STORAGE)
-            == PackageManager.PERMISSION_GRANTED;
+        == PackageManager.PERMISSION_GRANTED;
   }
 
   private void requestCameraPermission() {
-      ActivityCompat.requestPermissions(this,
-              new String[] {PERMISSION_CAMERA},
-              REQUEST_CAMERA_PERMISSION);
+    ActivityCompat.requestPermissions(
+        this, new String[] {PERMISSION_CAMERA}, REQUEST_CAMERA_PERMISSION);
   }
 
   private void requestLocationPermission() {
-    ActivityCompat.requestPermissions(this,
-            new String[]{PERMISSION_LOCATION},
-            REQUEST_LOCATION_PERMISSION);
+    ActivityCompat.requestPermissions(
+        this, new String[] {PERMISSION_LOCATION}, REQUEST_LOCATION_PERMISSION);
   }
 
   private void requestStoragePermission() {
-    ActivityCompat.requestPermissions(this,
-            new String[]{PERMISSION_STORAGE},
-            REQUEST_STORAGE_PERMISSION);
+    ActivityCompat.requestPermissions(
+        this, new String[] {PERMISSION_STORAGE}, REQUEST_STORAGE_PERMISSION);
   }
 
   // Returns true if the device supports the required hardware level, or better.
@@ -573,7 +559,11 @@ public abstract class CameraActivity extends SensorActivity
       for (final String cameraId : manager.getCameraIdList()) {
         final CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
 
-        LOGGER.i("CAMERA ID: " + cameraId + " FACING: " + characteristics.get(CameraCharacteristics.LENS_FACING));
+        LOGGER.i(
+            "CAMERA ID: "
+                + cameraId
+                + " FACING: "
+                + characteristics.get(CameraCharacteristics.LENS_FACING));
         // We don't use a front facing camera in this sample.
         final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
         if (facing != null && facing != facingSelection) {
@@ -594,7 +584,7 @@ public abstract class CameraActivity extends SensorActivity
             (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
                 || isHardwareLevelSupported(
                     characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL)
-                    || isHardwareLevelSupported(
+                || isHardwareLevelSupported(
                     characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED);
         LOGGER.i("Camera API lv2?: %s", useCamera2API);
         return cameraId;
@@ -628,7 +618,8 @@ public abstract class CameraActivity extends SensorActivity
       fragment = camera2Fragment;
     } else {
       fragment =
-          new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize(), cameraSelection);
+          new LegacyCameraConnectionFragment(
+              this, getLayoutId(), getDesiredPreviewFrameSize(), cameraSelection);
     }
 
     getFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
@@ -670,7 +661,6 @@ public abstract class CameraActivity extends SensorActivity
     }
   }
 
-
   protected void showFrameInfo(String frameInfo) {
     frameValueTextView.setText(frameInfo);
   }
@@ -679,9 +669,13 @@ public abstract class CameraActivity extends SensorActivity
     cropValueTextView.setText(cropInfo);
   }
 
-  protected void showInference(String inferenceTime) { inferenceTimeTextView.setText(inferenceTime); }
+  protected void showInference(String inferenceTime) {
+    inferenceTimeTextView.setText(inferenceTime);
+  }
 
-  protected void showControl(String controlValue) { controlValueTextView.setText(controlValue); }
+  protected void showControl(String controlValue) {
+    controlValueTextView.setText(controlValue);
+  }
 
   protected int getBaudRate() {
     return baudRate;
@@ -707,7 +701,7 @@ public abstract class CameraActivity extends SensorActivity
       this.controlSpeed = controlSpeed;
     }
   }
-  
+
   protected void setDriveMode(DriveMode driveMode) {
     if (this.driveMode != driveMode) {
       LOGGER.d("Updating  driveMode: " + driveMode);
@@ -756,25 +750,29 @@ public abstract class CameraActivity extends SensorActivity
     }
   }
 
-  protected boolean getLoggingEnabled() { return loggingEnabled; }
+  protected boolean getLoggingEnabled() {
+    return loggingEnabled;
+  }
 
   Messenger mSensorMessenger;
 
-  ServiceConnection mSensorConnection = new ServiceConnection() {
-    @Override
-    public void onServiceConnected(ComponentName className, IBinder binder) {
-      mSensorMessenger = new Messenger(binder);
-      Log.d("SensorServiceConnection","connected");
-    }
-    @Override
-    public void onServiceDisconnected(ComponentName className) {
-      mSensorMessenger = null;
-      Log.d("SensorServiceConnection","disconnected");
-    }
-  };
+  ServiceConnection mSensorConnection =
+      new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder binder) {
+          mSensorMessenger = new Messenger(binder);
+          Log.d("SensorServiceConnection", "connected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName className) {
+          mSensorMessenger = null;
+          Log.d("SensorServiceConnection", "disconnected");
+        }
+      };
 
   protected void sendFrameNumberToSensorService(long frameNumber) {
-    if (mSensorMessenger != null){
+    if (mSensorMessenger != null) {
       Message msg = Message.obtain();
       Bundle bundle = new Bundle();
       bundle.putLong("frameNumber", frameNumber);
@@ -784,13 +782,14 @@ public abstract class CameraActivity extends SensorActivity
       try {
         mSensorMessenger.send(msg);
       } catch (RemoteException e) {
-        e.printStackTrace();;
+        e.printStackTrace();
+        ;
       }
     }
   }
 
   protected void sendInferenceTimeToSensorService(long frameNumber, long inferenceTime) {
-    if (mSensorMessenger != null){
+    if (mSensorMessenger != null) {
       Message msg = Message.obtain();
       Bundle bundle = new Bundle();
       bundle.putLong("frameNumber", frameNumber);
@@ -800,70 +799,78 @@ public abstract class CameraActivity extends SensorActivity
       try {
         mSensorMessenger.send(msg);
       } catch (RemoteException e) {
-        e.printStackTrace();;
+        e.printStackTrace();
+        ;
       }
     }
   }
 
   protected void sendControlToSensorService(ControlSignal vehicleControl) {
-    if (mSensorMessenger != null){
+    if (mSensorMessenger != null) {
       Message msg = Message.obtain();
-      msg.arg1 = (int) vehicleControl.getLeft() * controlSpeed.value;
-      msg.arg2 = (int) vehicleControl.getRight() * controlSpeed.value;
+      msg.arg1 = (int) (vehicleControl.getLeft() * controlSpeed.value);
+      msg.arg2 = (int) (vehicleControl.getRight() * controlSpeed.value);
       msg.what = SensorService.MSG_CONTROL;
       try {
         mSensorMessenger.send(msg);
       } catch (RemoteException e) {
-        e.printStackTrace();;
+        e.printStackTrace();
+        ;
       }
     }
   }
 
   protected void sendIndicatorToSensorService(int vehicleIndicator) {
-    if (mSensorMessenger != null){
+    if (mSensorMessenger != null) {
       Message msg = Message.obtain();
       msg.arg1 = vehicleIndicator;
       msg.what = SensorService.MSG_INDICATOR;
       try {
         mSensorMessenger.send(msg);
       } catch (RemoteException e) {
-        e.printStackTrace();;
+        e.printStackTrace();
+        ;
       }
     }
   }
 
   private void startLogging() {
-    logFolder = Environment.getExternalStorageDirectory().getAbsolutePath()
-            + File.separator + getString(R.string.app_name) + File.separator
+    logFolder =
+        Environment.getExternalStorageDirectory().getAbsolutePath()
+            + File.separator
+            + getString(R.string.app_name)
+            + File.separator
             + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
     intentSensorService.putExtra("logFolder", logFolder + File.separator + "sensor_data");
     startService(intentSensorService);
     bindService(intentSensorService, mSensorConnection, Context.BIND_AUTO_CREATE);
-    //Send current vehicle state to log
-    runInBackground(() -> {
-      try {
-        TimeUnit.MILLISECONDS.sleep(500);
-        sendControlToSensorService(vehicleControl);
-        sendIndicatorToSensorService(vehicleIndicator);
-      } catch (InterruptedException e) {
-        LOGGER.e(e, "Got interrupted.");
-      }
-    });
+    // Send current vehicle state to log
+    runInBackground(
+        () -> {
+          try {
+            TimeUnit.MILLISECONDS.sleep(500);
+            sendControlToSensorService(vehicleControl);
+            sendIndicatorToSensorService(vehicleIndicator);
+          } catch (InterruptedException e) {
+            LOGGER.e(e, "Got interrupted.");
+          }
+        });
   }
 
-  private void stopLogging(){
+  private void stopLogging() {
     if (mSensorConnection != null) {
       unbindService(mSensorConnection);
       stopService(intentSensorService);
     }
 
-    //Pack and upload the collected data
-    runInBackground(() -> {
-      String logZipFile = logFolder + ".zip";
-      //Zip the log folder and then delete it
-      ZipUtil.pack(new File(logFolder),new File(logZipFile));
-      FileUtils.deleteQuietly(new File(logFolder));
-    });
+    // Pack and upload the collected data
+    runInBackground(
+        () -> {
+          String logZipFile = logFolder + ".zip";
+          // Zip the log folder and then delete it
+          ZipUtil.pack(new File(logFolder), new File(logZipFile));
+          FileUtils.deleteQuietly(new File(logFolder));
+        });
   }
 
   protected void setIsLoggingActive(boolean loggingActive) {
@@ -871,21 +878,17 @@ public abstract class CameraActivity extends SensorActivity
       if (!hasCameraPermission() && logMode != LogMode.ONLY_SENSORS) {
         requestCameraPermission();
         this.loggingEnabled = false;
-      }
-      else if (!hasLocationPermission()){
+      } else if (!hasLocationPermission()) {
         requestLocationPermission();
         this.loggingEnabled = false;
-      }
-      else if (!hasStoragePermission()){
+      } else if (!hasStoragePermission()) {
         requestStoragePermission();
         this.loggingEnabled = false;
-      }
-      else {
+      } else {
         startLogging();
         this.loggingEnabled = true;
       }
-    }
-    else if (!loggingActive && getLoggingEnabled()) {
+    } else if (!loggingActive && getLoggingEnabled()) {
       stopLogging();
       this.loggingEnabled = false;
     }
@@ -905,16 +908,15 @@ public abstract class CameraActivity extends SensorActivity
   protected abstract Size getDesiredPreviewFrameSize();
 
   protected abstract void onInferenceConfigurationChanged();
-  
-  private void connectUsb () {
+
+  private void connectUsb() {
     usbConnection = new UsbConnection(this, baudRate);
     usbConnected = usbConnection.startUsbConnection();
   }
 
-
-  private void disconnectUsb () {
+  private void disconnectUsb() {
     if (usbConnection != null) {
-      sendControlToVehicle(new ControlSignal(0,0));
+      sendControlToVehicle(new ControlSignal(0, 0));
       usbConnection.stopUsbConnection();
       usbConnection = null;
     }
@@ -924,32 +926,23 @@ public abstract class CameraActivity extends SensorActivity
   protected void toggleConnection(boolean isChecked) {
     if (isChecked) {
       connectUsb();
-    }
-    else {
+    } else {
       disconnectUsb();
     }
-    //Disable baudrate selection if connected
+    // Disable baudrate selection if connected
     baudRateSpinner.setEnabled(!usbConnected);
     connectionSwitchCompat.setChecked(usbConnected);
 
     if (usbConnected) {
       connectionSwitchCompat.setText(usbConnection.getProductName());
-      Toast.makeText(getContext(),
-              "Connected.",
-              Toast.LENGTH_SHORT).show();
-    }
-    else {
+      Toast.makeText(getContext(), "Connected.", Toast.LENGTH_SHORT).show();
+    } else {
       connectionSwitchCompat.setText("No Device");
-      //Tried to connect but failed
+      // Tried to connect but failed
       if (isChecked) {
-          Toast.makeText(getContext(),
-                  "Please check the USB connection.",
-                  Toast.LENGTH_SHORT).show();
-      }
-      else {
-        Toast.makeText(getContext(),
-                "Disconnected.",
-                Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Please check the USB connection.", Toast.LENGTH_SHORT).show();
+      } else {
+        Toast.makeText(getContext(), "Disconnected.", Toast.LENGTH_SHORT).show();
       }
     }
   }
@@ -958,7 +951,9 @@ public abstract class CameraActivity extends SensorActivity
 
   protected void sendControlToVehicle(ControlSignal vehicleControl) {
     if ((usbConnection != null) && usbConnection.isOpen() && !usbConnection.isBusy()) {
-      String message = String.format("c%d,%d\n",
+      String message =
+          String.format(
+              "c%d,%d\n",
               (int) (vehicleControl.getLeft() * controlSpeed.value),
               (int) (vehicleControl.getRight() * controlSpeed.value));
       LOGGER.i(message);
@@ -973,65 +968,57 @@ public abstract class CameraActivity extends SensorActivity
     }
   }
 
-  public static Context getContext(){
+  public static Context getContext() {
     return mContext;
   }
 
-@Override
-public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-  if (buttonView == connectionSwitchCompat) {
+  @Override
+  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    if (buttonView == connectionSwitchCompat) {
       toggleConnection(isChecked);
-  }
-  else if (buttonView == driveModeSwitchCompat) {
+    } else if (buttonView == driveModeSwitchCompat) {
       setDriveByNetwork(isChecked);
-  }
-  else if (buttonView == loggerSwitchCompat) {
+    } else if (buttonView == loggerSwitchCompat) {
       setIsLoggingActive(isChecked);
+    }
   }
-}
 
+  @Override
+  public void onClick(View v) {
+    if (v.getId() == R.id.plus) {
+      String threads = threadsTextView.getText().toString().trim();
+      int numThreads = Integer.parseInt(threads);
+      if (numThreads >= 9) return;
+      setNumThreads(++numThreads);
+      threadsTextView.setText(String.valueOf(numThreads));
+    } else if (v.getId() == R.id.minus) {
+      String threads = threadsTextView.getText().toString().trim();
+      int numThreads = Integer.parseInt(threads);
+      if (numThreads == 1) return;
+      setNumThreads(--numThreads);
+      threadsTextView.setText(String.valueOf(numThreads));
+    }
+  }
 
-@Override
-public void onClick(View v) {
-  if (v.getId() == R.id.plus) {
-    String threads = threadsTextView.getText().toString().trim();
-    int numThreads = Integer.parseInt(threads);
-    if (numThreads >= 9) return;
-    setNumThreads(++numThreads);
-    threadsTextView.setText(String.valueOf(numThreads));
-  } else if (v.getId() == R.id.minus) {
-    String threads = threadsTextView.getText().toString().trim();
-    int numThreads = Integer.parseInt(threads);
-    if (numThreads == 1) return;
-    setNumThreads(--numThreads);
-    threadsTextView.setText(String.valueOf(numThreads));
+  @Override
+  public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+    if (parent == baudRateSpinner) {
+      setBaudRate(Integer.parseInt(parent.getItemAtPosition(pos).toString()));
+    } else if (parent == modelSpinner) {
+      setModel(Model.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
+    } else if (parent == deviceSpinner) {
+      setDevice(Device.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
+    } else if (parent == driveModeSpinner) {
+      setDriveMode(DriveMode.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
+    } else if (parent == loggerSpinner) {
+      setLogMode(LogMode.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
+    } else if (parent == controlSpinner) {
+      setControlSpeed(ControlSpeed.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
+    }
   }
-}
 
-@Override
-public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-  if (parent == baudRateSpinner) {
-    setBaudRate(Integer.parseInt(parent.getItemAtPosition(pos).toString()));
+  @Override
+  public void onNothingSelected(AdapterView<?> parent) {
+    // Do nothing.
   }
-  else if (parent == modelSpinner) {
-    setModel(Model.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
-  }
-  else if (parent == deviceSpinner) {
-    setDevice(Device.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
-  }
-  else if (parent == driveModeSpinner) {
-    setDriveMode(DriveMode.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
-  }
-  else if (parent == loggerSpinner) {
-    setLogMode(LogMode.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
-  }
-  else if (parent == controlSpinner) {
-    setControlSpeed(ControlSpeed.valueOf(parent.getItemAtPosition(pos).toString().toUpperCase()));
-  }
-}
-
-@Override
-public void onNothingSelected(AdapterView<?> parent) {
-  // Do nothing.
-}
 }
