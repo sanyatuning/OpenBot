@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.openbot.CameraActivity.ControlSignal;
 import org.openbot.ControlSignal;
 
 public abstract class Autopilot extends Network {

@@ -59,7 +59,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -148,6 +147,8 @@ public abstract class CameraActivity extends SensorActivity
   protected String logFolder;
   private boolean loggingEnabled;
   private Intent intentSensorService;
+  private NsdService nsdService;
+  private UploadService uploadService;
 
   public enum LogMode {
     ALL_IMGS,
@@ -157,9 +158,9 @@ public abstract class CameraActivity extends SensorActivity
   }
 
   public enum ControlSpeed {
-    SLOW(300),
-    NORMAL(700),
-    FAST(1024);
+    SLOW(128),
+    NORMAL(192),
+    FAST(255);
 
     public final int value;
 
@@ -229,6 +230,7 @@ public abstract class CameraActivity extends SensorActivity
           }
         });
     sheetBehavior.setHideable(false);
+    sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
     sheetBehavior.setBottomSheetCallback(
         new BottomSheetBehavior.BottomSheetCallback() {
@@ -434,6 +436,11 @@ public abstract class CameraActivity extends SensorActivity
     handlerThread = new HandlerThread("inference");
     handlerThread.start();
     handler = new Handler(handlerThread.getLooper());
+    uploadService = new UploadService();
+    uploadService.init(getApplicationContext());
+
+    nsdService = new NsdService();
+    nsdService.start(getApplicationContext(), uploadService);
   }
 
   @Override
@@ -445,6 +452,7 @@ public abstract class CameraActivity extends SensorActivity
       handlerThread.join();
       handlerThread = null;
       handler = null;
+      nsdService.stop();
     } catch (final InterruptedException e) {
       LOGGER.e(e, "Exception!");
     }
@@ -868,8 +876,14 @@ public abstract class CameraActivity extends SensorActivity
         () -> {
           String logZipFile = logFolder + ".zip";
           // Zip the log folder and then delete it
-          ZipUtil.pack(new File(logFolder), new File(logZipFile));
+          File zip = new File(logZipFile);
+          ZipUtil.pack(new File(logFolder), zip);
           FileUtils.deleteQuietly(new File(logFolder));
+          String serverUrl = nsdService.getServerUrl();
+          if (serverUrl.isEmpty()) {
+            return;
+          }
+          uploadService.upload(serverUrl, zip);
         });
   }
 
