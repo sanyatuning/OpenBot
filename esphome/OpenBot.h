@@ -27,13 +27,10 @@
 //DEFINITIONS
 //------------------------------------------------------//
 
-//#define PIN_PWMA 16
-//#define PIN_PWMB 2
-
-#define PIN_PWM1 D6
-#define PIN_PWM2 D5
-#define PIN_PWM3 D7
-#define PIN_PWM4 D0
+#define PIN_PWM1 D7
+#define PIN_PWM2 D0
+#define PIN_PWM3 D5
+#define PIN_PWM4 D6
 #define PIN_SPEED_L TX
 #define PIN_SPEED_R RX
 #define PIN_VIN A0
@@ -47,7 +44,6 @@
 //------------------------------------------------------//
 
 #include "esphome.h"
-//#include "analogWrite.h"
 #include <Ultrasonic.h>
 
 //Sonar sensor
@@ -60,7 +56,7 @@ int ctrl_right = 0;
 
 //Voltage measurement
 unsigned int counter_voltage = 0;
-const unsigned int vin_array_sz = 100;
+const unsigned int vin_array_sz = 32;
 unsigned int vin_array[vin_array_sz]={0};
 
 //Speed sensors
@@ -77,7 +73,6 @@ const unsigned long indicator_interval = 500;
 unsigned long indicator_time = 0;
 int indicator_val = 0;
 bool ctrl_rx = 0;
-bool target_rx = 0;
 bool indicator_rx = 0;
 
 //Serial communication
@@ -94,20 +89,12 @@ class OpenBot : public Component {
  static const char *TAG;
  static OpenBot *instance;
 
-// AddressableLight &it = *fastled_base_fastledlightoutput;
- AsyncWebSocket ws = AsyncWebSocket("/ws");
  HighFrequencyLoopRequester high_freq_;
-
-// MyIMU imu = MyIMU();
 
  Ultrasonic *ultrasonic;
  unsigned int distance_cm = MAX_DISTANCE;
  unsigned long ping_time;
  unsigned long lastMsg;
-
- int targetDirection = 180;
- int targetSpeed = 0;
-
 
  public:
 
@@ -115,11 +102,9 @@ class OpenBot : public Component {
     this->instance = this;
 
     //Outputs
-//    pinMode(PIN_PWMA,OUTPUT);
     pinMode(PIN_PWM1,OUTPUT);
     pinMode(PIN_PWM2,OUTPUT);
 
-//    pinMode(PIN_PWMB,OUTPUT);
     pinMode(PIN_PWM3,OUTPUT);
     pinMode(PIN_PWM4,OUTPUT);
 
@@ -127,7 +112,7 @@ class OpenBot : public Component {
     pinMode(PIN_LED_RR,OUTPUT);
 
     //Inputs
-//    pinMode(PIN_VIN,INPUT);
+    pinMode(PIN_VIN,INPUT);
     pinMode(PIN_SPEED_L,INPUT);
     pinMode(PIN_SPEED_R,INPUT);
 
@@ -143,35 +128,24 @@ class OpenBot : public Component {
 
     ultrasonic = new Ultrasonic(PIN_TRIGGER, PIN_ECHO);
     ultrasonic->setMaxDistance(MAX_DISTANCE);
-
-//    ws.onEvent(this->onWsEvent);
-//    web_server_base_webserverbase->add_handler(&this->ws);
-
-//    imu.setup();
   }
 
   void dump_config() override {
-//    imu.dump_config();
-//    if (targetSpeed > 0) {
-//      targetSpeed = 0;
-//    } else {
-//      targetSpeed = 80;
-//    }
+
   }
 
   void loop() override {
     if (millis() >= ping_time) {
-      // Measure distance every ping_interval
-//      updateCtrl();
-//      distance_cm = ultrasonic->read();
-      ping_time += ping_interval;
-    }
-
-    if (millis() >= send_time) {
       //Measure voltage
       vin_array[counter_voltage%vin_array_sz] = analogRead(PIN_VIN);
       counter_voltage++;
 
+      // Measure distance every ping_interval
+      distance_cm = ultrasonic->read();
+      ping_time += ping_interval;
+    }
+
+    if (millis() >= send_time) {
       // Write voltage to serial every send_interval
       sendVehicleData();
       send_time += send_interval;
@@ -181,7 +155,6 @@ class OpenBot : public Component {
     if (millis() >= indicator_time) {
       updateIndicator();
       indicator_time += indicator_interval;
-//      i2cScan();
     }
 
     if (millis() > lastMsg + 2000) {
@@ -203,11 +176,8 @@ class OpenBot : public Component {
 
   void processChar(char inChar) {
     cmd += inChar;
-    // Serial.print(inChar);
     if (ctrl_rx) {
       processCtrlMsg(inChar);
-    } else if (target_rx) {
-      processTargetMsg(inChar);
     } else if (indicator_rx) {
       processIndicatorMsg(inChar);
     } else {
@@ -219,52 +189,13 @@ class OpenBot : public Component {
   // FUNCTIONS
   //------------------------------------------------------//
 
-  static void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len) {
-    if(type == WS_EVT_CONNECT){
-      ESP_LOGD(TAG, "ws[%s][%u] connect", server->url(), client->id());
-      client->printf("Hello Client %u :)", client->id());
-      client->ping();
-    } else if(type == WS_EVT_DISCONNECT){
-      ESP_LOGD(TAG, "ws[%s][%u] disconnect", server->url(), client->id());
-    } else if(type == WS_EVT_ERROR){
-      ESP_LOGD(TAG, "ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
-    } else if(type == WS_EVT_PONG){
-      ESP_LOGD(TAG, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len)?(char*)data:"");
-    } else if(type == WS_EVT_DATA){
-      AwsFrameInfo * info = (AwsFrameInfo*)arg;
-      String msg = "";
-      if(info->final && info->index == 0 && info->len == len){
-
-        if(info->opcode == WS_TEXT){
-          for(size_t i=0; i < info->len; i++) {
-            msg += (char) data[i];
-          }
-        } else {
-          char buff[3];
-          for(size_t i=0; i < info->len; i++) {
-            sprintf(buff, "%02x ", (uint8_t) data[i]);
-            msg += buff ;
-          }
-        }
-//        ESP_LOGD(TAG, "msg: %s",msg.c_str());
-
-        instance->processString(msg);
-
-//        if(info->opcode == WS_TEXT)
-//          client->text("I got your text message");
-//        else
-//          client->binary("I got your binary message");
-      }
-    }
-  }
-
   float getVoltage() {
     unsigned long array_sum = 0;
     unsigned int array_size = min(vin_array_sz,counter_voltage);
     for (unsigned int index = 0; index < array_size; index++) {
       array_sum += vin_array[index];
     }
-    return float(array_sum)/array_size/1023*13.44;
+    return float(array_sum)/array_size/1023*13.34;
   }
 
   static void speed_left() {
@@ -304,25 +235,6 @@ class OpenBot : public Component {
     updateMotors();
   }
 
-  void updateCtrl() {
-//    updateMotors();
-//    return;
-
-    ESP_LOGD(TAG, "dir: %d speed: %d", targetDirection, targetSpeed);
-
-//    int yaw = imu.filter.getYaw();
-//    int diff = max(-20, min(yaw - targetDirection, 20));
-    int diff = 0;
-
-    if (targetSpeed) {
-      ctrl_left = min(targetSpeed + diff, targetSpeed);
-      ctrl_right = min(targetSpeed - diff, targetSpeed);
-      updateMotors();
-    } else {
-      stop();
-    }
-  }
-
   void updateMotors() {
     if (getVoltage() < 8.25) {
       ESP_LOGD(TAG, "low voltage protection");
@@ -358,25 +270,17 @@ class OpenBot : public Component {
     // Serial.write(inChar);
     // comma indicates that inString contains the left ctrl
     if (inChar == ',') {
-      ctrl_left = inString.toInt();
+      ctrl_left = inString.toInt() * 4;
       // clear the string for new input:
       inString = "";
     } else if (inChar == '\n') {
       // new line indicates that inString contains the right ctrl
-      ctrl_right = inString.toInt(); //* 0.95;
+      ctrl_right = inString.toInt() * 4;
       // clear the string for new input:
       inString = "";
       // end of message
       ctrl_rx = false;
 
-      int diff = max(-20, min(ctrl_right - ctrl_left, 20));
-      targetDirection = (targetDirection + diff) % 360;
-      if (targetDirection < 0) {
-        targetDirection += 360;
-      }
-      targetSpeed = max(ctrl_left, ctrl_right);
-
-//      updateCtrl();
       updateMotors();
       cmd.trim();
       ESP_LOGD(TAG, "%s", cmd.c_str());
@@ -387,25 +291,6 @@ class OpenBot : public Component {
       // is not a newline or comma,
       // convert the incoming byte to a char
       // and add it to the string
-      inString += inChar;
-    }
-  }
-
-  void processTargetMsg(char inChar) {
-    if (inChar == ',') {
-      targetDirection = inString.toInt();
-      inString = "";
-    } else if (inChar == '\n') {
-      targetSpeed = inString.toInt();
-      inString = "";
-      target_rx = false;
-
-      updateCtrl();
-      cmd.trim();
-      ESP_LOGD(TAG, "%s", cmd.c_str());
-      cmd = "";
-      lastMsg = millis();
-    } else {
       inString += inChar;
     }
   }
@@ -433,9 +318,6 @@ class OpenBot : public Component {
       case 'c':
         ctrl_rx = true;
         break;
-      case 't':
-        target_rx = true;
-        break;
       case 'i':
         indicator_rx = true;
         break;
@@ -446,39 +328,16 @@ class OpenBot : public Component {
     float volt = getVoltage();
     Serial.print(getVoltage());
     Serial.print(",");
-  //  Serial.print(counter_left);
-    Serial.print(ctrl_left);
+    Serial.print(counter_left);
     Serial.print(",");
-  //  Serial.print(counter_right);
-    Serial.print(ctrl_right);
+    Serial.print(counter_right);
     Serial.print(",");
     Serial.print(distance_cm);
     Serial.println();
     counter_left = 0;
     counter_right = 0;
 
-    ESP_LOGD(TAG, "L: %d R: %d D: %d V: %.2f", ctrl_left, ctrl_right, distance_cm, volt);
-//    xSemaphoreTake(imu.mutex1, portMAX_DELAY);
-//    ESP_LOGD(TAG, "Orientation: %.2f %.2f %.2f",
-//      imu.filter.getYaw(), imu.filter.getPitch(), imu.filter.getRoll()
-//    );
-
-//    ESP_LOGD(TAG, "Accel: %.3f %.3f %.3f",
-//      imu.event_accel.acceleration.x,
-//      imu.event_accel.acceleration.y,
-//      imu.event_accel.acceleration.z
-//    );
-//   ESP_LOGD(TAG, "Gyro: %.3f %.3f %.3f",
-//      imu.event_gyro.gyro.x,
-//      imu.event_gyro.gyro.y,
-//      imu.event_gyro.gyro.z
-//    );
-//    ESP_LOGD(TAG, "Mag: %.3f %.3f %.3f",
-//      imu.event_mag.magnetic.x,
-//      imu.event_mag.magnetic.y,
-//      imu.event_mag.magnetic.z
-//    );
-//    xSemaphoreGive(imu.mutex1);
+    ESP_LOGD(TAG, "L: %d R: %d D: %d V: %.2f", counter_left, counter_right, distance_cm, volt);
   }
 
   void updateIndicator() {
