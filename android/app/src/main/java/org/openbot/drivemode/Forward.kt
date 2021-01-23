@@ -6,6 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import org.openbot.ControlSignal
+import org.openbot.env.Vehicle
 
 class Forward(private val context: Context) : DriveMode, SensorEventListener {
 
@@ -13,7 +14,7 @@ class Forward(private val context: Context) : DriveMode, SensorEventListener {
     private val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR)
 
 
-    override fun getControl(): ControlSignal {
+    override fun getControl(sensorOrientation: Int): Vehicle.Control {
         sensor.also {accelerometer ->
             sensorManager.registerListener(
                     this,
@@ -24,7 +25,7 @@ class Forward(private val context: Context) : DriveMode, SensorEventListener {
         }
 
 
-        return ControlSignal(0f, 0f)
+        return Vehicle.Control(0f, 0f)
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {

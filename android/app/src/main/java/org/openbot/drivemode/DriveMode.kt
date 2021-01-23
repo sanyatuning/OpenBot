@@ -1,9 +1,9 @@
 package org.openbot.drivemode
 
-import org.openbot.ControlSignal
+import org.openbot.env.Vehicle
 
 interface DriveMode {
 
-    public fun getControl(): ControlSignal
+    public fun getControl(sensorOrientation: Int): Vehicle.Control
 
 }

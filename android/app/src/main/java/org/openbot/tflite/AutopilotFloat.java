@@ -1,17 +1,16 @@
-//Created by Matthias Mueller - Intel Intelligent Systems Lab - 2020
-
+// Created by Matthias Mueller - Intel Intelligent Systems Lab - 2020
 
 package org.openbot.tflite;
 
 import android.app.Activity;
 import android.graphics.RectF;
-
 import java.io.IOException;
 
 class AutopilotFloat extends Autopilot {
 
   /** Additional normalization of the used input. */
   private static final float IMAGE_MEAN = 0.0f;
+
   private static final float IMAGE_STD = 255.0f;
 
   /**
@@ -19,10 +18,9 @@ class AutopilotFloat extends Autopilot {
    *
    * @param activity
    */
-  public AutopilotFloat(Activity activity, Device device, int numThreads)
-          throws IOException {
-    super(activity, device, numThreads);
-
+  public AutopilotFloat(Activity activity, Model model, Device device, int numThreads)
+      throws IOException {
+    super(activity, model, device, numThreads);
   }
 
   @Override
@@ -31,16 +29,24 @@ class AutopilotFloat extends Autopilot {
   }
 
   @Override
-  public boolean getMaintainAspect() { return true; }
+  public boolean getMaintainAspect() {
+    return true;
+  }
 
   @Override
-  public RectF getCropRect() { return new RectF(0.0f,240.0f/720.0f,0.0f,0.0f); }
+  public RectF getCropRect() {
+    return new RectF(0.0f, 240.0f / 720.0f, 0.0f, 0.0f);
+  }
 
   @Override
-  public int getImageSizeX() { return 256; }
+  public int getImageSizeX() {
+    return 256;
+  }
 
   @Override
-  public int getImageSizeY() { return 96; }
+  public int getImageSizeY() {
+    return 96;
+  }
 
   @Override
   protected int getNumBytesPerChannel() {
@@ -53,5 +59,4 @@ class AutopilotFloat extends Autopilot {
     imgData.putFloat((((pixelValue >> 8) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
     imgData.putFloat(((pixelValue & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
   }
-
 }

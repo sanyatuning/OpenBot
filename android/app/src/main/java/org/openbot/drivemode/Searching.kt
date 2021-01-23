@@ -1,6 +1,6 @@
 package org.openbot.drivemode
 
-import org.openbot.ControlSignal
+import org.openbot.env.Vehicle
 
 class Searching : DriveMode {
 
@@ -10,7 +10,7 @@ class Searching : DriveMode {
     private var rightControl = 0f
     private var skippedFrames = 0
 
-    override fun getControl(): ControlSignal {
+    override fun getControl(sensorOrientation: Int): Vehicle.Control {
         skippedFrames++
         if (skippedFrames > 8) {
             skippedFrames = 0
@@ -20,7 +20,7 @@ class Searching : DriveMode {
             leftControl = 0.0f
             rightControl = 0.0f
         }
-        return ControlSignal(leftControl, rightControl)
+        return Vehicle.Control(leftControl, rightControl)
     }
 
 }

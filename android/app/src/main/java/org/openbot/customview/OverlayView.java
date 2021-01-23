@@ -15,6 +15,7 @@ limitations under the License.
 
 package org.openbot.customview;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
@@ -34,6 +35,7 @@ public class OverlayView extends View {
     callbacks.add(callback);
   }
 
+  @SuppressLint("MissingSuperCall")
   @Override
   public synchronized void draw(final Canvas canvas) {
     for (final DrawCallback callback : callbacks) {
@@ -43,6 +45,6 @@ public class OverlayView extends View {
 
   /** Interface defining the callback for client classes. */
   public interface DrawCallback {
-    public void drawCallback(final Canvas canvas);
+    void drawCallback(final Canvas canvas);
   }
 }

@@ -1,39 +1,38 @@
-//Created by Matthias Mueller - Intel Intelligent Systems Lab - 2020
+// Created by Matthias Mueller - Intel Intelligent Systems Lab - 2020
 
 package org.openbot.env;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
-
 import java.io.File;
 import java.io.IOException;
+import org.openbot.common.Enums;
 
-//Convert text to speech
-//https://ttsmp3.com
+// Convert text to speech
+// https://ttsmp3.com
 
 public class AudioPlayer {
   private MediaPlayer mp;
-  private Context mContext;
+  private final Context context;
 
   public AudioPlayer(Context context) {
     mp = new MediaPlayer();
-    mContext = context;
+    this.context = context;
   }
 
-
-  //Play from a resource file
-  public void play(int id){
+  // Play from a resource file
+  public void play(int id) {
     try {
       mp.reset();
-      mp = mp.create(mContext, id);
+      mp = MediaPlayer.create(context, id);
       mp.start();
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
-  //Play from a file in storage
+  // Play from a file in storage
   public void play(String path) {
     try {
       mp.reset();
@@ -45,19 +44,43 @@ public class AudioPlayer {
     }
   }
 
-  //Play from media asset
+  // Play from media asset
   public void play(String assetFolder, String fileName) {
     try {
-      AssetFileDescriptor afd = mContext.getAssets().openFd(
-              "media" + File.separator +
-                      assetFolder + File.separator +
-                      fileName);
+      AssetFileDescriptor afd =
+          context
+              .getAssets()
+              .openFd("media" + File.separator + assetFolder + File.separator + fileName);
       mp.reset();
-      mp.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
+      mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
       mp.prepare();
       mp.start();
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public void playDriveMode(String voice, Enums.DriveMode driveMode) {
+    switch (driveMode) {
+      case DUAL:
+        play(voice, "dual_drive_control.mp3");
+        break;
+      case GAME:
+        play(voice, "video_game_control.mp3");
+        break;
+      case JOYSTICK:
+        play(voice, "joystick_control.mp3");
+        break;
+    }
+  }
+
+  public void playNoise(String voice, boolean isEnabled) {
+    if (isEnabled) play(voice, "noise_enabled.mp3");
+    else play(voice, "noise_disabled.mp3");
+  }
+
+  public void playLogging(String voice, boolean isEnabled) {
+    if (isEnabled) play(voice, "logging_started.mp3");
+    else play(voice, "logging_stopped.mp3");
   }
 }

@@ -13,13 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-//Modified by Matthias Mueller - Intel Intelligent Systems Lab - 2020
+// Modified by Matthias Mueller - Intel Intelligent Systems Lab - 2020
 
 package org.openbot.tflite;
 
 import android.app.Activity;
 import android.graphics.RectF;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,20 +53,26 @@ public class DetectorQuantizedMobileNetV3 extends Detector {
    *
    * @param activity
    */
-  public DetectorQuantizedMobileNetV3(Activity activity, Device device, int numThreads)
-          throws IOException {
-    super(activity, device, numThreads);
+  public DetectorQuantizedMobileNetV3(Activity activity, Model model, Device device, int numThreads)
+      throws IOException {
+    super(activity, model, device, numThreads);
     labelProbArray = new byte[1][getNumLabels()];
   }
 
   @Override
-  public boolean getMaintainAspect() { return false; }
+  public boolean getMaintainAspect() {
+    return false;
+  }
 
   @Override
-  public RectF getCropRect() { return new RectF(0.0f,0.0f,0.0f,0.0f); }
+  public RectF getCropRect() {
+    return new RectF(0.0f, 0.0f, 0.0f, 0.0f);
+  }
 
   @Override
-  public int getImageSizeX() { return 320; }
+  public int getImageSizeX() {
+    return 320;
+  }
 
   @Override
   public int getImageSizeY() {
@@ -84,7 +89,7 @@ public class DetectorQuantizedMobileNetV3 extends Detector {
 
   @Override
   protected String getLabelPath() {
-    return "labelmap.txt";
+    return "networks/labelmap.txt";
   }
 
   @Override
@@ -122,7 +127,7 @@ public class DetectorQuantizedMobileNetV3 extends Detector {
 
   @Override
   protected void runInference() {
-    //tflite.run(imgData, labelProbArray);
+    // tflite.run(imgData, labelProbArray);
     Object[] inputArray = {imgData};
     tflite.runForMultipleInputsOutputs(inputArray, outputMap);
   }
@@ -134,8 +139,8 @@ public class DetectorQuantizedMobileNetV3 extends Detector {
     outputScores = new float[1][getNumDetections()];
     numDetections = new float[1];
 
-    //Object[] inputArray = {imgData};
-//    Map<Integer, Object> outputMap = new HashMap<>();
+    // Object[] inputArray = {imgData};
+    //    Map<Integer, Object> outputMap = new HashMap<>();
     outputMap.put(0, outputLocations);
     outputMap.put(1, outputClasses);
     outputMap.put(2, outputScores);
@@ -149,11 +154,11 @@ public class DetectorQuantizedMobileNetV3 extends Detector {
     final ArrayList<Recognition> recognitions = new ArrayList<>(getNumDetections());
     for (int i = 0; i < getNumDetections(); ++i) {
       final RectF detection =
-              new RectF(
-                      outputLocations[0][i][1] * getImageSizeY(),
-                      outputLocations[0][i][0] * getImageSizeX(),
-                      outputLocations[0][i][3] * getImageSizeY(),
-                      outputLocations[0][i][2] * getImageSizeX());
+          new RectF(
+              outputLocations[0][i][1] * getImageSizeY(),
+              outputLocations[0][i][0] * getImageSizeX(),
+              outputLocations[0][i][3] * getImageSizeY(),
+              outputLocations[0][i][2] * getImageSizeX());
       // SSD Mobilenet V1 Model assumes class 0 is background class
       // in label file and class labels start from 1 to number_of_classes+1,
       // while outputClasses correspond to class index from 0 to number_of_classes
@@ -161,14 +166,13 @@ public class DetectorQuantizedMobileNetV3 extends Detector {
       String label = labels.get((int) outputClasses[0][i] + labelOffset);
       if (label.contentEquals("person") || label.contentEquals("dog") || label.contentEquals("cat")) {
         recognitions.add(
-                new Recognition(
-                        "" + i,
-                        label,
-                        outputScores[0][i],
-                        detection));
+            new Recognition(
+                "" + i,
+                label,
+                outputScores[0][i],
+                detection));
       }
     }
     return recognitions;
   }
-
 }
