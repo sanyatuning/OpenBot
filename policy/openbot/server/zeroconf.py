@@ -62,7 +62,7 @@ def ip4_address():
 
 async def do_close(zc):
     if info != None:
-      await zc.unregister_service(info)
+        await zc.unregister_service(info)
     await zc.close()
 
 
