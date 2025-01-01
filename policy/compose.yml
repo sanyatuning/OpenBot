@@ -1,0 +1,6 @@
+services:
+  server:
+    build: .
+    network_mode: host
+    volumes:
+      - ./dataset:/opt/OpenBot/policy/dataset

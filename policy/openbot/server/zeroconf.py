@@ -12,6 +12,7 @@ from netifaces import interfaces, ifaddresses, AF_INET
 
 SERVICE_TYPE = "_openbot-server._tcp.local."
 
+info = None
 loop = asyncio.get_event_loop()
 zc = Zeroconf(loop)
 
@@ -60,8 +61,8 @@ def ip4_address():
 
 
 async def do_close(zc):
-    global info
-    await zc.unregister_service(info)
+    if info != None:
+      await zc.unregister_service(info)
     await zc.close()
 
 
