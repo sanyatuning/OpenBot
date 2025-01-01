@@ -9,7 +9,7 @@ from openbot import base_dir
 
 
 async def init_frontend(app: web.Application):
-    public_dir = None
+    public_dir = os.getenv("OPENBOT_FRONTEND_PATH")
 
     async def handle_static(request: web.Request):
         path = request.match_info.get("path") or "index.html"
@@ -23,6 +23,13 @@ async def init_frontend(app: web.Application):
         run_frontend_dev_server()
         return
 
+    if public_dir is None:
+        public_dir = download_frontend()
+
+    print("Frontend path:", public_dir)
+
+
+def download_frontend():
     frontend_pkg = "openbot_frontend"
     version = get_pkg_version(frontend_pkg)
 
@@ -42,9 +49,9 @@ async def init_frontend(app: web.Application):
     importlib.reload(openbot_frontend)
 
     version = get_pkg_version(frontend_pkg)
-    public_dir = openbot_frontend.where()
     print("Running frontend:", version)
-    print("Frontend path:", public_dir)
+
+    return openbot_frontend.where()
 
 
 def get_pkg_version(frontend_pkg):
